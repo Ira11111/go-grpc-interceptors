@@ -4,8 +4,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"log"
 )
 
 var (
@@ -19,11 +19,13 @@ var (
 func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			log.Printf("unexpected signing method: %v", token.Header["alg"])
+			return nil, ErrInvalidSignature
 		}
 
 		block, _ := pem.Decode([]byte(publicKey))
 		if block == nil {
+			log.Printf("failed to decode PEM block")
 			return nil, ErrInvalidPubKey
 		}
 
@@ -40,11 +42,14 @@ func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidSignature, err)
+		log.Println(err.Error())
+		return nil, ErrInvalidSignature
 	}
 	if !token.Valid {
+		log.Println("jwt invalid token")
 		return nil, ErrInvalidToken
 	}
+	log.Println("jwt token valid")
 	return token, nil
 }
 
@@ -56,21 +61,24 @@ func ParseToken(tokenString string, publicKey string) (int64, []string, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
+		log.Println("jwt claims invalid")
 		return 0, []string{}, ErrInvalidClaims
 	}
 
 	// Получаем uid
 	uid, ok := claims["uid"].(float64)
 	if !ok {
+		log.Println("jwt uid invalid")
 		return 0, []string{}, ErrInvalidClaimsField
 	}
 
 	// Получаем roles
 	roles, ok := claims["roles"].([]string)
 	if !ok {
+		log.Println("jwt roles invalid")
 		return 0, []string{}, ErrInvalidClaimsField
 	}
-
+	log.Println("jwt claims valid")
 	return int64(uid), roles, nil
 
 }
