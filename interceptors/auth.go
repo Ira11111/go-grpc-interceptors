@@ -2,13 +2,17 @@ package interceptors
 
 import (
 	"context"
-	"fmt"
 	"github.com/Ira11111/go-grpc-interceptors/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"strings"
+)
+
+const (
+	register = "/auth.Auth/Register"
+	login    = "/auth.Auth/Login"
 )
 
 type AuthInterceptor struct {
@@ -21,8 +25,11 @@ func NewAuthInterceptor(key string) *AuthInterceptor {
 
 func (a *AuthInterceptor) JWTClaims() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		fmt.Println(info.FullMethod)
-		fmt.Println(info.Server)
+
+		if info.FullMethod == register || info.FullMethod == login {
+			return handler(ctx, req)
+		}
+
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
