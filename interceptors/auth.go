@@ -19,26 +19,28 @@ func NewAuthInterceptor(key string) *AuthInterceptor {
 	return &AuthInterceptor{key: key}
 }
 
-func (a *AuthInterceptor) JWTIClaimsInterceptor(ctx context.Context, req interface{}, info grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	fmt.Println(info.FullMethod)
-	fmt.Println(info.Server)
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
-	}
+func (a *AuthInterceptor) JWTClaims() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		fmt.Println(info.FullMethod)
+		fmt.Println(info.Server)
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
+		}
 
-	tokenStr := md["authorization"]
-	if len(tokenStr) == 0 {
-		return nil, status.Errorf(codes.Unauthenticated, "missing token")
-	}
-	token := strings.TrimPrefix(tokenStr[0], "Bearer ")
+		tokenStr := md["authorization"]
+		if len(tokenStr) == 0 {
+			return nil, status.Errorf(codes.Unauthenticated, "missing token")
+		}
+		token := strings.TrimPrefix(tokenStr[0], "Bearer ")
 
-	userId, userRoles, err := jwt.ParseToken(token, a.key)
-	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid token")
-	}
-	newCtx := context.WithValue(ctx, "userId", userId)
-	newCtx = context.WithValue(newCtx, "userRoles", userRoles)
+		userId, userRoles, err := jwt.ParseToken(token, a.key)
+		if err != nil {
+			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
+		}
+		newCtx := context.WithValue(ctx, "userId", userId)
+		newCtx = context.WithValue(newCtx, "userRoles", userRoles)
 
-	return handler(ctx, req)
+		return handler(ctx, req)
+	}
 }
