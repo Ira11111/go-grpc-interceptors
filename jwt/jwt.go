@@ -4,8 +4,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+)
+
+var (
+	ErrInvalidSignature = errors.New("invalid signature")
+	ErrInvalidPubKey    = errors.New("invalid public key")
+	ErrInvalidToken     = errors.New("invalid token")
+	ErrInvalidClaims    = errors.New("invalid claims")
 )
 
 func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
@@ -14,20 +20,20 @@ func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
 		// реализуем функцию для получения публичного ключа
 		block, _ := pem.Decode([]byte(publicKey))
 		if block == nil {
-			return nil, fmt.Errorf("failed to parse PEM block")
+			return nil, ErrInvalidPubKey
 		}
 		pubKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
-			return nil, err
+			return nil, ErrInvalidPubKey
 		}
-		return pubKey, nil
+		return pubKey, ErrInvalidPubKey
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidSignature
 	}
 	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return nil, ErrInvalidToken
 	}
 	return token, nil
 }
@@ -40,7 +46,7 @@ func ParseToken(tokenString string, publicKey string) (int64, []string, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, []string{}, errors.New("invalid claims format")
+		return 0, []string{}, ErrInvalidClaims
 	}
 
 	// Получаем uid
