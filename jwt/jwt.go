@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	ErrInvalidSignature = errors.New("invalid signature")
-	ErrInvalidPubKey    = errors.New("invalid public key")
-	ErrInvalidToken     = errors.New("invalid token")
-	ErrInvalidClaims    = errors.New("invalid claims")
+	ErrInvalidSignature   = errors.New("invalid signature")
+	ErrInvalidPubKey      = errors.New("invalid public key")
+	ErrInvalidToken       = errors.New("invalid token")
+	ErrInvalidClaims      = errors.New("invalid claims")
+	ErrInvalidClaimsField = errors.New("invalid claims field")
 )
 
 func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
@@ -52,13 +53,13 @@ func ParseToken(tokenString string, publicKey string) (int64, []string, error) {
 	// Получаем uid
 	uid, ok := claims["uid"].(float64)
 	if !ok {
-		return 0, []string{}, errors.New("uid not found or invalid type")
+		return 0, []string{}, ErrInvalidClaimsField
 	}
 
 	// Получаем roles
 	roles, ok := claims["roles"].([]string)
 	if !ok {
-		return 0, []string{}, errors.New("roleId not found or invalid type")
+		return 0, []string{}, ErrInvalidClaimsField
 	}
 
 	return int64(uid), roles, nil
