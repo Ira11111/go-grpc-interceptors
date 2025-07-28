@@ -73,12 +73,23 @@ func ParseToken(tokenString string, publicKey string) (int64, []string, error) {
 	}
 
 	// Получаем roles
-	roles, ok := claims["roles"].([]string)
+	roles, ok := claims["roles"].([]interface{})
 	if !ok {
 		log.Println("jwt roles invalid")
 		return 0, []string{}, ErrInvalidClaimsField
 	}
+
+	res := make([]string, 0, len(roles))
+	for _, role := range roles {
+		r, ok := role.(string)
+		if !ok {
+			log.Println("jwt role is not a string")
+			return 0, nil, ErrInvalidClaimsField
+		}
+		res = append(res, r)
+	}
+
 	log.Println("jwt claims valid")
-	return int64(uid), roles, nil
+	return int64(uid), res, nil
 
 }
