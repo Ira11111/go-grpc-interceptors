@@ -51,14 +51,17 @@ func (a *AuthInterceptor) JWTClaims() grpc.UnaryServerInterceptor {
 			switch err {
 			case jwt.ErrInvalidPubKey:
 				log.Print("Invalid key")
-			case jwt.ErrInvalidClaims:
-				log.Print("Invalid token claims")
 			case jwt.ErrInvalidSignature:
 				log.Print("Invalid token signature")
+			case jwt.ErrInvalidClaims:
+				log.Print("Invalid token claims")
+				return nil, status.Errorf(codes.Unauthenticated, "invalid token claims")
 			case jwt.ErrInvalidToken:
 				log.Print("Expired token")
+				return nil, status.Errorf(codes.Unauthenticated, "expired token")
 			case jwt.ErrInvalidClaimsField:
 				log.Print("Invalid token field")
+				return nil, status.Errorf(codes.Unauthenticated, "invalid token claims")
 			}
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 		}
