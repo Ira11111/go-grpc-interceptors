@@ -66,6 +66,6 @@ func (a *AuthInterceptor) JWTClaims() grpc.UnaryServerInterceptor {
 		newCtx := context.WithValue(ctx, "userId", userId)
 		newCtx = context.WithValue(newCtx, "userRoles", userRoles)
 		log.Printf("context info added")
-		return handler(ctx, req)
+		return handler(newCtx, req)
 	}
 }
