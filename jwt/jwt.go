@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -16,22 +17,30 @@ var (
 )
 
 func validateToken(tokenString string, publicKey string) (*jwt.Token, error) {
-	// валидируем токен проверяя корректность подписи
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// реализуем функцию для получения публичного ключа
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
 		block, _ := pem.Decode([]byte(publicKey))
 		if block == nil {
 			return nil, ErrInvalidPubKey
 		}
+
+		// Пробуем разные форматы ключей
 		pubKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
-			return nil, ErrInvalidPubKey
+			pubKey2, err := x509.ParsePKIXPublicKey(block.Bytes)
+			if err != nil {
+				return nil, ErrInvalidPubKey
+			}
+			return pubKey2, nil
 		}
-		return pubKey, ErrInvalidPubKey
+		return pubKey, nil // <- Возвращаем только ключ, без ошибки
 	})
 
 	if err != nil {
-		return nil, ErrInvalidSignature
+		return nil, fmt.Errorf("%w: %v", ErrInvalidSignature, err)
 	}
 	if !token.Valid {
 		return nil, ErrInvalidToken
