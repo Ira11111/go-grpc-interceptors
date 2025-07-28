@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"fmt"
 	"github.com/Ira11111/go-grpc-interceptors/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,6 +20,8 @@ func NewAuthInterceptor(key string) *AuthInterceptor {
 }
 
 func (a *AuthInterceptor) JWTIClaimsInterceptor(ctx context.Context, req interface{}, info grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	fmt.Println(info.FullMethod)
+	fmt.Println(info.Server)
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
