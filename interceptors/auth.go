@@ -14,6 +14,7 @@ import (
 const (
 	register = "/auth.Auth/Register"
 	login    = "/auth.Auth/Login"
+	refresh  = "/auth.Auth/RefreshToken"
 )
 
 type AuthInterceptor struct {
@@ -27,7 +28,7 @@ func NewAuthInterceptor(key string) *AuthInterceptor {
 func (a *AuthInterceptor) JWTClaims() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 
-		if info.FullMethod == register || info.FullMethod == login {
+		if info.FullMethod == register || info.FullMethod == login || info.FullMethod == refresh {
 			log.Print("Public method")
 			return handler(ctx, req)
 		}
