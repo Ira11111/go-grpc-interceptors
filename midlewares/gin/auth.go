@@ -16,7 +16,7 @@ type AuthMiddleware struct {
 	key string
 }
 
-func NewAuthInterceptor(key string) *AuthMiddleware {
+func NewAuthMiddleware(key string) *AuthMiddleware {
 	return &AuthMiddleware{key: key}
 }
 
