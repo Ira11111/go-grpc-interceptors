@@ -1,4 +1,4 @@
-module github.com/Ira11111/go-grpc-interceptors
+module github.com/Ira11111/go-interceptors
 
 go 1.23.0
 

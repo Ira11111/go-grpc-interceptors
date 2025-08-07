@@ -2,7 +2,7 @@ package interceptors
 
 import (
 	"context"
-	"github.com/Ira11111/go-grpc-interceptors/jwt"
+	"github.com/Ira11111/go-interceptors/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
