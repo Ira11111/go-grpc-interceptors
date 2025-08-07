@@ -47,12 +47,15 @@ func (a *AuthMiddleware) JWTClaims() gin.HandlerFunc {
 				case jwt.ErrInvalidClaims:
 					log.Print("Invalid token claims")
 					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+					return
 				case jwt.ErrInvalidToken:
 					log.Print("Expired token")
 					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "expired token"})
+					return
 				case jwt.ErrInvalidClaimsField:
 					log.Print("Invalid token field")
 					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token field"})
+					return
 				}
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 				return
